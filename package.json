@@ -1,0 +1,8 @@
+{
+  "name": "macroslug",
+  "private": true,
+  "scripts": {
+    "dev:api": "npm --prefix apps/api run dev",
+    "dev:mobile": "npm --prefix apps/mobile start"
+  }
+}
