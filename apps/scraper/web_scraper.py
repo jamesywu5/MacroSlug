@@ -19,7 +19,7 @@ regex_macros = r"(\d+.\d?.*)"
 # Getting today's date for url_add_on
 
 today = date.today() # Commented out for testing purposes.
-# today = date(2025, 5, 25)
+# today = date(2026, 10, 18)
 
 date_url = today.strftime("%m %d %y").split(" ")
 url_add_on = "&WeeksMenus=UCSC+-+This+Week%27s+Menus&dtdate={}%2f{}%2f{}".format(
