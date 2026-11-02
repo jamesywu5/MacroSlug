@@ -1,0 +1,3 @@
+# Supabase Files
+
+* .env

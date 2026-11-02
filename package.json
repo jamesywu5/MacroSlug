@@ -4,5 +4,8 @@
   "scripts": {
     "dev:api": "npm --prefix apps/api run dev",
     "dev:mobile": "npm --prefix apps/mobile start"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0"
   }
 }
