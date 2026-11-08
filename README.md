@@ -14,6 +14,10 @@ flowchart LR
 
 The scraper reads the public dining hall pages and writes menu and nutrition data into Supabase. The Express API in `apps/api` reads that data and exposes it over HTTP. The Expo app is the client that calls the API.
 
+## Allergen and ingredient safety
+
+The mobile app labels allergen and ingredient information as unverified. Menu details may be incomplete, including ingredients and cross-contact risks. Anyone with an allergy should confirm details directly with dining hall staff before eating and should not rely on the app to determine whether food is safe.
+
 ## Run the backend API
 
 From the repository root:
