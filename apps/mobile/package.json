@@ -36,7 +36,7 @@
   },
   "scripts": {
     "start": "expo start",
-    "test": "tsx --test src/features/preferences/types.test.ts src/features/preferences/storage.test.ts",
+    "test": "tsx --test src/features/preferences/types.test.ts src/features/preferences/storage.test.ts src/features/preferences/selection.test.ts",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
