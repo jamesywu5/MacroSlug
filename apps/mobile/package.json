@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/ui": "~58.0.21",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "~58.0.16",
     "expo-constants": "~58.0.12",
     "expo-device": "~58.0.5",
@@ -28,11 +29,14 @@
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
+    "@types/node": "^26.6.6",
     "@types/react": "~19.3.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
+    "test": "tsx --test src/features/preferences/types.test.ts src/features/preferences/storage.test.ts",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
