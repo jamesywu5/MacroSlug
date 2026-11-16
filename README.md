@@ -14,6 +14,10 @@ flowchart LR
 
 The scraper reads the public dining hall pages and writes menu and nutrition data into Supabase. The Express API in `apps/api` reads that data and exposes it over HTTP. The Expo app is the client that calls the API.
 
+## Pull requests
+
+Squash and merge pull requests into `main` so each pull request appears as a single commit.
+
 ## Prerequisites
 
 - Node.js and npm
