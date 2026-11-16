@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+import { SymbolView } from 'expo-symbols'
 
 import { BottomTabInset } from '@/constants/theme'
 
@@ -13,6 +14,7 @@ import { colors, radius, shadow, spacing } from './theme'
 type Props = {
   name: string
   hasNotifications?: boolean
+  onOpenSettings?: () => void
   onOpenNotifications?: () => void
   onOpenDailyIntake?: () => void
   onOpenMacros?: () => void
@@ -44,6 +46,7 @@ function formatShortDate(date: Date) {
 export default function HomeScreen({
   name,
   hasNotifications = true,
+  onOpenSettings,
   onOpenNotifications,
   onOpenDailyIntake,
   onOpenMacros,
@@ -84,6 +87,9 @@ export default function HomeScreen({
             {name}
           </Text>
         </View>
+        <Pressable onPress={onOpenSettings} accessibilityRole="button" accessibilityLabel="Food preferences" accessibilityHint="Opens dietary restrictions and food preferences" hitSlop={10} style={{ marginRight: 20 }}>
+          <SymbolView name={{ ios: 'gearshape', android: 'settings', web: 'settings' }} tintColor={colors.text} size={24} />
+        </Pressable>
         <Pressable onPress={onOpenNotifications} accessibilityRole="button" accessibilityLabel="Notifications" hitSlop={10}>
           <BellIcon size={24} />
           {hasNotifications && <View style={styles.bellDot} />}
