@@ -46,7 +46,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest --runInBand && npm run test:preferences"
+    "test": "jest --runInBand && npm run test:preferences && npm run test:nutrition-goals",
+    "test:nutrition-goals": "node --experimental-strip-types --test src/features/nutrition-goals/model.test.mjs"
   },
   "private": true,
   "jest": {
