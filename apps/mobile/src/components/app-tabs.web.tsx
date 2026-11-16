@@ -8,10 +8,11 @@ import {
 } from 'expo-router/ui';
 import { SymbolView } from 'expo-symbols';
 import type { Ref } from 'react';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 import type { ViewInstance } from 'react-native';
 
 import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
