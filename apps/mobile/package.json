@@ -25,23 +25,35 @@
     "react-native-reanimated": "4.7.1",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
+    "react-native-svg": "15.16.0",
     "react-native-web": "~0.21.4",
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^26.6.6",
     "@types/react": "~19.3.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~58.0.11",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
-    "test": "tsx --test src/features/preferences/types.test.ts src/features/preferences/storage.test.ts src/features/preferences/selection.test.ts",
+    "test:preferences": "tsx --test src/features/preferences/types.test.ts src/features/preferences/storage.test.ts src/features/preferences/selection.test.ts",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest --runInBand && npm run test:preferences"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/src/features/preferences/"
+    ]
+  }
 }
