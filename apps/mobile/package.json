@@ -46,15 +46,17 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest --runInBand && npm run test:preferences && npm run test:nutrition-goals",
-    "test:nutrition-goals": "node --experimental-strip-types --test src/features/nutrition-goals/model.test.mjs"
+    "test": "jest --runInBand && npm run test:preferences && npm run test:nutrition-goals && npm run test:daily-log",
+    "test:nutrition-goals": "node --experimental-strip-types --test src/features/nutrition-goals/model.test.mjs",
+    "test:daily-log": "tsx --test src/features/daily-log/totals.test.ts src/features/daily-log/missing-flags.test.ts"
   },
   "private": true,
   "jest": {
     "preset": "jest-expo",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/src/features/preferences/"
+      "/src/features/preferences/",
+      "/src/features/daily-log/"
     ]
   }
 }

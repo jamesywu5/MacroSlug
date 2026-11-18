@@ -38,14 +38,21 @@ export const mockFoodSource: FoodSource = {
 export function createApiFoodSource(baseUrl: string): FoodSource {
   return {
     async getFoods(query = {}) {
-      const params = new URLSearchParams();
-      if (query.diningHall) params.set('dining_hall', query.diningHall);
-      if (query.meal) params.set('meal_type', query.meal);
-
-      const qs = params.toString();
-      const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/foods${qs ? `?${qs}` : ''}`);
+      const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/foods`);
       if (!res.ok) throw new Error(`Couldn't load the menu (HTTP ${res.status})`);
-      return (await res.json()) as FoodRow[];
+
+      // GET /api/foods answers { foods: [...] } and has no filter parameters.
+      const body = (await res.json()) as { foods?: unknown };
+      if (!Array.isArray(body.foods)) {
+        throw new Error("Couldn't load the menu (unexpected response from the API)");
+      }
+
+      // The API returns every row, so apply the query here to match the mock source.
+      return (body.foods as FoodRow[]).filter(
+        (row) =>
+          (!query.diningHall || row.dining_hall === query.diningHall) &&
+          (!query.meal || row.meal_type === query.meal),
+      );
     },
   };
 }
