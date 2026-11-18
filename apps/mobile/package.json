@@ -46,9 +46,13 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
+<<<<<<< HEAD
     "test": "jest --runInBand && npm run test:preferences && npm run test:nutrition-goals && npm run test:daily-log",
     "test:nutrition-goals": "node --experimental-strip-types --test src/features/nutrition-goals/model.test.mjs",
     "test:daily-log": "tsx --test src/features/daily-log/totals.test.ts src/features/daily-log/missing-flags.test.ts"
+=======
+    "test": "jest --runInBand && npm run test:preferences"
+>>>>>>> parent of 61dcb39 (feat/settings-nutrition-goals (#9))
   },
   "private": true,
   "jest": {
