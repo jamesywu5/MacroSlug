@@ -41,23 +41,6 @@ export default function SettingsScreen() {
             <View style={styles.headerSpacer} />
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint="Opens dietary restrictions and food preferences"
-            onPress={() => router.push('/settings/food-preferences' as Href)}
-            style={({ pressed }) => [styles.settingRow, pressed && styles.pressed]}>
-            <View style={styles.settingCopy}>
-              <ThemedText type="smallBold">Food preferences</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Choose dietary restrictions and preferences
-              </ThemedText>
-            </View>
-            <SymbolView
-              tintColor={theme.textSecondary}
-              name={{ ios: 'chevron.right', android: 'arrow_forward', web: 'arrow_forward' }}
-              size={16}
-            />
-          </Pressable>
 
           <Pressable
             accessibilityRole="button"
