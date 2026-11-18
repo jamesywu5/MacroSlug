@@ -1,9 +1,11 @@
 import express from "express";
 import { getFoods } from "./data/foods.ts";
+import { dailyLogRouter } from "./daily-log.ts";
 
 const app = express();
 
 app.use(express.json());
+app.use("/api/log-entries", dailyLogRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
