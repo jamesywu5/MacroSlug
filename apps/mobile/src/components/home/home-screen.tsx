@@ -87,7 +87,7 @@ export default function HomeScreen({
             {name}
           </Text>
         </View>
-        <Pressable onPress={onOpenSettings} accessibilityRole="button" accessibilityLabel="Settings" accessibilityHint="Opens settings" hitSlop={10} style={{ marginRight: 20 }}>
+        <Pressable onPress={onOpenSettings} accessibilityRole="button" accessibilityLabel="Food preferences" accessibilityHint="Opens dietary restrictions and food preferences" hitSlop={10} style={{ marginRight: 20 }}>
           <SymbolView name={{ ios: 'gearshape', android: 'settings', web: 'settings' }} tintColor={colors.text} size={24} />
         </Pressable>
         <Pressable onPress={onOpenNotifications} accessibilityRole="button" accessibilityLabel="Notifications" hitSlop={10}>
