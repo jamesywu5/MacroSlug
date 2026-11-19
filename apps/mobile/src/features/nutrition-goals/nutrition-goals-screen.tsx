@@ -16,20 +16,25 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { EMPTY_NUTRITION_GOALS, type NutritionGoalsInputState } from './types';
 import {
-  copyNutritionGoals,
-  NUTRITION_GOAL_FIELDS,
-  updateNutritionGoal,
-} from './model';
+  EMPTY_NUTRITION_GOALS,
+  type NutritionGoalErrors,
+  type NutritionGoalKey,
+  type NutritionGoals,
+  type NutritionGoalsInputState,
+} from './types';
+import { NUTRITION_GOAL_FIELDS, updateNutritionGoal } from './model';
+import { validateNutritionGoals } from './validation';
 
 interface NutritionGoalsScreenProps {
-  onSave: (goals: NutritionGoalsInputState) => void;
+  /** Called with parsed goals only when every field is valid. Blank fields are `null`. */
+  onSave: (goals: NutritionGoals) => void;
 }
 
 export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
   const theme = useTheme();
   const [goals, setGoals] = useState<NutritionGoalsInputState>(EMPTY_NUTRITION_GOALS);
+  const [errors, setErrors] = useState<NutritionGoalErrors>({});
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -39,8 +44,25 @@ export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
     }
   };
 
-  const updateGoal = (field: keyof NutritionGoalsInputState, value: string) => {
+  const updateGoal = (field: NutritionGoalKey, value: string) => {
     setGoals((current) => updateNutritionGoal(current, field, value));
+    setErrors((current) => {
+      if (current[field] === undefined) {
+        return current;
+      }
+      const { [field]: _cleared, ...rest } = current;
+      return rest;
+    });
+  };
+
+  const handleSave = () => {
+    const result = validateNutritionGoals(goals);
+    if (!result.ok) {
+      setErrors(result.errors);
+      return;
+    }
+    setErrors({});
+    onSave(result.goals);
   };
 
   return (
@@ -79,13 +101,15 @@ export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
               </ThemedText>
 
               <View style={styles.fields}>
-                {NUTRITION_GOAL_FIELDS.map(({ key, label, unit, keyboardType }) => (
+                {NUTRITION_GOAL_FIELDS.map(({ key, label, unit, keyboardType, placeholder }) => (
                   <GoalInput
                     key={key}
                     label={label}
                     unit={unit}
                     value={goals[key]}
                     keyboardType={keyboardType}
+                    placeholder={placeholder}
+                    error={errors[key]}
                     onChangeText={(value) => updateGoal(key, value)}
                   />
                 ))}
@@ -103,7 +127,7 @@ export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => onSave(copyNutritionGoals(goals))}
+                onPress={handleSave}
                 style={({ pressed }) => [
                   styles.saveButton,
                   { backgroundColor: theme.text },
@@ -126,12 +150,24 @@ interface GoalInputProps {
   unit: string;
   value: string;
   keyboardType: 'numeric' | 'decimal-pad';
+  placeholder: string;
+  error?: string;
   onChangeText: (value: string) => void;
 }
 
-function GoalInput({ label, unit, value, keyboardType, onChangeText }: GoalInputProps) {
+function GoalInput({
+  label,
+  unit,
+  value,
+  keyboardType,
+  placeholder,
+  error,
+  onChangeText,
+}: GoalInputProps) {
   const theme = useTheme();
   const [focused, setFocused] = useState(false);
+  const hasError = error !== undefined;
+  const borderColor = hasError ? theme.error : focused ? theme.text : theme.backgroundSelected;
 
   return (
     <View style={styles.field}>
@@ -140,19 +176,21 @@ function GoalInput({ label, unit, value, keyboardType, onChangeText }: GoalInput
         style={[
           styles.inputContainer,
           {
-            borderColor: focused ? theme.text : theme.backgroundSelected,
-            borderWidth: focused ? 2 : 1,
+            borderColor,
+            borderWidth: focused || hasError ? 2 : 1,
           },
         ]}>
         <TextInput
           nativeID={`nutrition-goal-${label.toLowerCase().replace(/\s+/g, '-')}`}
           accessibilityLabel={`${label} daily target in ${unit}`}
+          accessibilityHint={error}
+          aria-invalid={hasError}
           keyboardType={keyboardType}
           value={value}
           onChangeText={onChangeText}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Not set"
+          placeholder={placeholder}
           placeholderTextColor={theme.textSecondary}
           style={[
             styles.input,
@@ -161,6 +199,15 @@ function GoalInput({ label, unit, value, keyboardType, onChangeText }: GoalInput
         />
         <ThemedText themeColor="textSecondary">{unit}</ThemedText>
       </View>
+      {hasError && (
+        <ThemedText
+          type="small"
+          themeColor="error"
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite">
+          {error}
+        </ThemedText>
+      )}
     </View>
   );
 }
