@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { SymbolView } from 'expo-symbols'
 
-import { BottomTabInset } from '@/constants/theme'
+import { BottomTabInset, Spacing } from '@/constants/theme'
 
 import { DINING_HALLS } from './dining-halls'
 import { ArrowRightIcon, BellIcon, DairyIcon, FruitIcon, GrainIcon, HeartIcon, VeggieIcon } from './icons'
@@ -72,8 +72,13 @@ export default function HomeScreen({
       style={styles.screen}
       contentContainerStyle={[
         styles.content,
-        // Clear the status bar on top and the native tab bar on the bottom.
-        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + BottomTabInset + 32 },
+        // Clear the status bar on top and the native tab bar on the bottom. On web
+        // the tab bar floats over the top of the page instead, so leave room for it
+        // (same offset as the Menu tab) or it covers the settings button.
+        {
+          paddingTop: Platform.OS === 'web' ? Spacing.six + Spacing.five : insets.top + 16,
+          paddingBottom: insets.bottom + BottomTabInset + 32,
+        },
       ]}
       showsVerticalScrollIndicator={false}
     >
