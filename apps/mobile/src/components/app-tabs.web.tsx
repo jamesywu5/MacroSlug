@@ -89,6 +89,9 @@ const styles = StyleSheet.create({
   tabListContainer: {
     position: 'absolute',
     width: '100%',
+    // The container spans the full page width, so let taps outside the visible
+    // tab bar reach the screen underneath instead of being swallowed.
+    pointerEvents: 'box-none',
     padding: Spacing.three,
     justifyContent: 'center',
     alignItems: 'center',
