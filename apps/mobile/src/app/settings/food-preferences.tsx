@@ -253,6 +253,7 @@ function PreferenceSection<T extends string>({
               onPress={() => onToggle(option.id)}
               style={({ pressed }) => [
                 styles.option,
+                // Selection only changes colors, so the option keeps the same size.
                 {
                   backgroundColor: isSelected ? theme.backgroundSelected : theme.background,
                   borderColor: isSelected ? theme.text : theme.backgroundSelected,
@@ -260,13 +261,6 @@ function PreferenceSection<T extends string>({
                 pressed && styles.pressed,
               ]}>
               <ThemedText type="small">{option.label}</ThemedText>
-              {isSelected && (
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'checkmark', android: 'check', web: 'check' }}
-                  size={16}
-                />
-              )}
             </Pressable>
           );
         })}
