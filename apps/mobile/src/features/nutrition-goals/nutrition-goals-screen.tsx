@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -22,19 +23,66 @@ import {
   type NutritionGoalKey,
   type NutritionGoals,
   type NutritionGoalsInputState,
+  type StoredNutritionGoals,
 } from './types';
 import { NUTRITION_GOAL_FIELDS, updateNutritionGoal } from './model';
+import { goalsToInputState } from './storage-core';
 import { validateNutritionGoals } from './validation';
 
+const LOAD_ERROR = 'Could not load your saved goals. Please try again.';
+const SAVE_ERROR = 'Could not save your goals. Please try again.';
+const SAVED_MESSAGE = 'Goals saved on this device.';
+
 interface NutritionGoalsScreenProps {
-  /** Called with parsed goals only when every field is valid. Blank fields are `null`. */
-  onSave: (goals: NutritionGoals) => void;
+  /** Loads previously saved goals. Rejects when storage cannot be read. */
+  loadGoals: () => Promise<StoredNutritionGoals>;
+  /** Saves parsed goals (blank fields are `null`). Called only when every field is valid. */
+  saveGoals: (goals: NutritionGoals) => Promise<StoredNutritionGoals>;
 }
 
-export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
+export function NutritionGoalsScreen({ loadGoals, saveGoals }: NutritionGoalsScreenProps) {
   const theme = useTheme();
   const [goals, setGoals] = useState<NutritionGoalsInputState>(EMPTY_NUTRITION_GOALS);
   const [errors, setErrors] = useState<NutritionGoalErrors>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+
+  /** Fetches saved goals; state updates happen only after the request settles. */
+  const fetchGoals = useCallback(
+    (isCurrent: () => boolean = () => true) =>
+      loadGoals().then(
+        (stored) => {
+          if (!isCurrent()) return;
+          setGoals(goalsToInputState(stored.goals));
+          setErrors({});
+          setIsLoading(false);
+        },
+        () => {
+          if (!isCurrent()) return;
+          setLoadError(LOAD_ERROR);
+          setIsLoading(false);
+        }
+      ),
+    [loadGoals]
+  );
+
+  // `isLoading` starts true, so the first load needs no synchronous state update.
+  useEffect(() => {
+    let current = true;
+    void fetchGoals(() => current);
+    return () => {
+      current = false;
+    };
+  }, [fetchGoals]);
+
+  const retryLoad = () => {
+    setIsLoading(true);
+    setLoadError(null);
+    void fetchGoals();
+  };
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -46,6 +94,8 @@ export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
 
   const updateGoal = (field: NutritionGoalKey, value: string) => {
     setGoals((current) => updateNutritionGoal(current, field, value));
+    setSaveError(null);
+    setSavedMessage(null);
     setErrors((current) => {
       if (current[field] === undefined) {
         return current;
@@ -55,15 +105,33 @@ export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (isSaving) {
+      return;
+    }
+    setSaveError(null);
+    setSavedMessage(null);
+
     const result = validateNutritionGoals(goals);
     if (!result.ok) {
       setErrors(result.errors);
       return;
     }
     setErrors({});
-    onSave(result.goals);
+
+    setIsSaving(true);
+    try {
+      const saved = await saveGoals(result.goals);
+      setGoals(goalsToInputState(saved.goals));
+      setSavedMessage(SAVED_MESSAGE);
+    } catch {
+      setSaveError(SAVE_ERROR);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const showForm = !isLoading && loadError === null;
 
   return (
     <ThemedView style={styles.screen}>
@@ -100,44 +168,93 @@ export function NutritionGoalsScreen({ onSave }: NutritionGoalsScreenProps) {
                 Set optional daily targets. Leave a field blank to skip it.
               </ThemedText>
 
-              <View style={styles.fields}>
-                {NUTRITION_GOAL_FIELDS.map(({ key, label, unit, keyboardType, placeholder }) => (
-                  <GoalInput
-                    key={key}
-                    label={label}
-                    unit={unit}
-                    value={goals[key]}
-                    keyboardType={keyboardType}
-                    placeholder={placeholder}
-                    error={errors[key]}
-                    onChangeText={(value) => updateGoal(key, value)}
-                  />
-                ))}
-              </View>
+              {isLoading ? (
+                <View style={styles.feedback}>
+                  <ActivityIndicator color={theme.text} />
+                  <ThemedText themeColor="textSecondary">Loading goals…</ThemedText>
+                </View>
+              ) : loadError !== null ? (
+                <View style={styles.feedback}>
+                  <ThemedText accessibilityRole="alert">{loadError}</ThemedText>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={retryLoad}
+                    style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}>
+                    <ThemedText type="smallBold" themeColor="textSecondary">
+                      Try again
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.fields}>
+                    {NUTRITION_GOAL_FIELDS.map(
+                      ({ key, label, unit, keyboardType, placeholder }) => (
+                        <GoalInput
+                          key={key}
+                          label={label}
+                          unit={unit}
+                          value={goals[key]}
+                          keyboardType={keyboardType}
+                          placeholder={placeholder}
+                          error={errors[key]}
+                          onChangeText={(value) => updateGoal(key, value)}
+                        />
+                      )
+                    )}
+                  </View>
+                  {saveError !== null && (
+                    <ThemedText
+                      themeColor="error"
+                      accessibilityRole="alert"
+                      accessibilityLiveRegion="polite">
+                      {saveError}
+                    </ThemedText>
+                  )}
+                  {savedMessage !== null && (
+                    <ThemedText
+                      themeColor="textSecondary"
+                      accessibilityRole="status"
+                      accessibilityLiveRegion="polite">
+                      {savedMessage}
+                    </ThemedText>
+                  )}
+                </>
+              )}
             </ScrollView>
 
-            <View style={[styles.actions, { borderTopColor: theme.backgroundSelected }]}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={handleBack}
-                style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}>
-                <ThemedText type="smallBold" themeColor="textSecondary">
-                  Cancel
-                </ThemedText>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                onPress={handleSave}
-                style={({ pressed }) => [
-                  styles.saveButton,
-                  { backgroundColor: theme.text },
-                  pressed && styles.pressed,
-                ]}>
-                <ThemedText type="smallBold" style={{ color: theme.background }}>
-                  Save goals
-                </ThemedText>
-              </Pressable>
-            </View>
+            {showForm && (
+              <View style={[styles.actions, { borderTopColor: theme.backgroundSelected }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={handleBack}
+                  style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}>
+                  <ThemedText type="smallBold" themeColor="textSecondary">
+                    Cancel
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Save goals"
+                  accessibilityState={{ disabled: isSaving, busy: isSaving }}
+                  disabled={isSaving}
+                  onPress={() => void handleSave()}
+                  style={({ pressed }) => [
+                    styles.saveButton,
+                    { backgroundColor: theme.text },
+                    pressed && styles.pressed,
+                    isSaving && styles.disabled,
+                  ]}>
+                  {isSaving ? (
+                    <ActivityIndicator color={theme.background} />
+                  ) : (
+                    <ThemedText type="smallBold" style={{ color: theme.background }}>
+                      Save goals
+                    </ThemedText>
+                  )}
+                </Pressable>
+              </View>
+            )}
           </KeyboardAvoidingView>
         </View>
       </SafeAreaView>
@@ -299,7 +416,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: Spacing.three,
   },
+  feedback: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    paddingVertical: Spacing.six,
+  },
+  retryButton: {
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.three,
+  },
   pressed: {
     opacity: 0.7,
+  },
+  disabled: {
+    opacity: 0.45,
   },
 });
