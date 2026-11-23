@@ -169,6 +169,8 @@ export default function FoodPreferencesScreen() {
                     These choices are saved on this device. Dietary restrictions filter the
                     Menu tab. Food preferences are saved but don&apos;t change the menu yet.
                     Allergen information comes from dining hall labels and is not verified.
+                    Kosher filtering is a best guess, because the dining halls don&apos;t label
+                    kosher food.
                   </ThemedText>
                 </ThemedView>
 
