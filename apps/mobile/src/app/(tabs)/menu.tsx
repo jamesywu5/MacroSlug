@@ -23,6 +23,7 @@ import { useFoods } from '@/hooks/use-foods';
 import { useTheme } from '@/hooks/use-theme';
 import { defaultMealFor } from '@/lib/food/filter-foods';
 import { buildMenuView, loadMenuRestrictions } from '@/lib/food/menu-view';
+import { ALLERGEN_DISCLAIMER } from '@/lib/food/safety-info';
 import { DINING_HALLS, type DiningHallId, type MealType } from '@/lib/food/types';
 
 export default function MenuScreen() {
@@ -55,6 +56,7 @@ export default function MenuScreen() {
     showBanner,
     restrictionLabels,
     hiddenCount,
+    filtersActive,
     emptyBecauseOfDiet: hiddenByDiet,
   } = useMemo(
     () => buildMenuView({ foods, restrictions, showAll, diningHall, meal }),
@@ -126,7 +128,24 @@ export default function MenuScreen() {
         <FlatList
           data={visible}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <FoodCard item={item} showHall={diningHall === 'all'} />}
+          renderItem={({ item }) => (
+            <FoodCard
+              item={item}
+              showHall={diningHall === 'all'}
+              restrictions={filtersActive ? restrictions : undefined}
+            />
+          )}
+          ListHeaderComponent={
+            visible.length > 0 ? (
+              <View
+                style={[styles.disclaimer, { borderColor: theme.backgroundSelected }]}
+                accessibilityRole="text">
+                <ThemedText type="small" themeColor="textSecondary">
+                  {`ⓘ ${ALLERGEN_DISCLAIMER}`}
+                </ThemedText>
+              </View>
+            ) : undefined
+          }
           contentContainerStyle={[
             styles.list,
             { paddingBottom: insets.bottom + BottomTabInset + Spacing.four },
@@ -212,6 +231,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: 999,
+  },
+  disclaimer: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    marginBottom: Spacing.three,
   },
   empty: {
     alignItems: 'center',
