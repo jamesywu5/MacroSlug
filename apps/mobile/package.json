@@ -47,7 +47,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest --runInBand && npm run test:preferences && npm run test:nutrition-goals && npm run test:daily-log",
-    "test:nutrition-goals": "node --experimental-strip-types --test src/features/nutrition-goals/model.test.mjs src/features/nutrition-goals/validation.test.mjs",
+    "test:nutrition-goals": "node --experimental-strip-types --test src/features/nutrition-goals/model.test.mjs src/features/nutrition-goals/validation.test.mjs && tsx --test src/features/nutrition-goals/storage.test.ts",
     "test:daily-log": "tsx --test src/features/daily-log/totals.test.ts src/features/daily-log/missing-flags.test.ts"
   },
   "private": true,
@@ -56,7 +56,8 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/src/features/preferences/",
-      "/src/features/daily-log/"
+      "/src/features/daily-log/",
+      "/src/features/nutrition-goals/"
     ]
   }
 }
