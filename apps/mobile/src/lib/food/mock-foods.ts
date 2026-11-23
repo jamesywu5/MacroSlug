@@ -30,39 +30,41 @@ function row(
 /**
  * Fake menu used until the app reads real data. It covers every hall and meal,
  * plus a few rows with missing nutrition data so those states can be seen.
+ * Diet icons (vegan, vegetarian, halal, pork, beef) let every dietary
+ * restriction filter visibly hide and keep items.
  */
 export const MOCK_FOOD_ROWS: FoodRow[] = [
   // Cowell/Stevenson
-  row('Cowell/Stevenson', 'Breakfast', 'Scrambled Eggs', 180, 14, 2, 12, ['eggs']),
-  row('Cowell/Stevenson', 'Breakfast', 'Oatmeal', 150, 5, 27, 3, ['gluten']),
+  row('Cowell/Stevenson', 'Breakfast', 'Scrambled Eggs', 180, 14, 2, 12, ['eggs', 'vegetarian']),
+  row('Cowell/Stevenson', 'Breakfast', 'Oatmeal', 150, 5, 27, 3, ['gluten', 'vegan']),
   row('Cowell/Stevenson', 'Lunch', 'Turkey Sandwich', 380, 24, 42, 12, ['gluten', 'soy']),
-  row('Cowell/Stevenson', 'Lunch', 'Garden Salad', 70, 2, 10, 3),
-  row('Cowell/Stevenson', 'Dinner', 'Tofu Stir Fry', 240, 15, 26, 9, ['soy']),
-  row('Cowell/Stevenson', 'Dinner', 'Jasmine Rice', 200, 4, 45, 0),
+  row('Cowell/Stevenson', 'Lunch', 'Garden Salad', 70, 2, 10, 3, ['vegan']),
+  row('Cowell/Stevenson', 'Dinner', 'Tofu Stir Fry', 240, 15, 26, 9, ['soy', 'vegan']),
+  row('Cowell/Stevenson', 'Dinner', 'Jasmine Rice', 200, 4, 45, 0, ['vegan']),
 
   // Crown/Merrill
-  row('Crown/Merrill', 'Breakfast', 'Buttermilk Pancakes', 310, 7, 48, 10, ['gluten', 'milk', 'eggs']),
-  row('Crown/Merrill', 'Breakfast', 'Turkey Sausage', 140, 0, 0, 0), // macros missing
-  row('Crown/Merrill', 'Lunch', 'Grilled Chicken', 220, 38, 0, 6),
-  row('Crown/Merrill', 'Lunch', 'Black Bean Burger', 290, 14, 38, 9, ['gluten', 'soy']),
-  row('Crown/Merrill', 'Dinner', 'Spaghetti Marinara', 350, 12, 62, 6, ['gluten']),
-  row('Crown/Merrill', 'Dinner', 'Roasted Broccoli', 60, 3, 8, 2),
+  row('Crown/Merrill', 'Breakfast', 'Buttermilk Pancakes', 310, 7, 48, 10, ['gluten', 'milk', 'eggs', 'vegetarian']),
+  row('Crown/Merrill', 'Breakfast', 'Turkey Sausage', 140, 0, 0, 0, ['pork']), // macros missing
+  row('Crown/Merrill', 'Lunch', 'Grilled Chicken', 220, 38, 0, 6, ['halal']),
+  row('Crown/Merrill', 'Lunch', 'Black Bean Burger', 290, 14, 38, 9, ['gluten', 'soy', 'vegan']),
+  row('Crown/Merrill', 'Dinner', 'Spaghetti Marinara', 350, 12, 62, 6, ['gluten', 'vegan']),
+  row('Crown/Merrill', 'Dinner', 'Roasted Broccoli', 60, 3, 8, 2, ['vegan']),
 
   // Nine/Ten
-  row('Nine/Ten', 'Breakfast', 'Breakfast Burrito', 420, 19, 40, 20, ['gluten', 'milk', 'eggs']),
-  row('Nine/Ten', 'Lunch', 'Chicken Tikka Masala', 330, 26, 18, 16, ['milk']),
+  row('Nine/Ten', 'Breakfast', 'Breakfast Burrito', 420, 19, 40, 20, ['gluten', 'milk', 'eggs', 'pork']),
+  row('Nine/Ten', 'Lunch', 'Chicken Tikka Masala', 330, 26, 18, 16, ['milk', 'halal']),
   row('Nine/Ten', 'Lunch', 'Chef Special', null, null, null, null), // everything missing
-  row('Nine/Ten', 'Dinner', 'Beef Tacos', 310, 18, 24, 15, ['milk']),
+  row('Nine/Ten', 'Dinner', 'Beef Tacos', 310, 18, 24, 15, ['milk', 'beef']),
 
   // Oakes/RCC
-  row('Oakes/RCC', 'Breakfast', 'Greek Yogurt Parfait', 210, 12, 30, 5, ['milk', 'tree nuts']),
-  row('Oakes/RCC', 'Lunch', 'Veggie Pho', 280, 9, 50, 4, ['soy']),
+  row('Oakes/RCC', 'Breakfast', 'Greek Yogurt Parfait', 210, 12, 30, 5, ['milk', 'tree nuts', 'vegetarian']),
+  row('Oakes/RCC', 'Lunch', 'Veggie Pho', 280, 9, 50, 4, ['soy', 'vegan']),
   row('Oakes/RCC', 'Dinner', 'Teriyaki Salmon', 300, 28, 12, 14, ['fish', 'soy']),
-  row('Oakes/RCC', 'Dinner', 'Steamed Edamame', 120, 11, 9, null, ['soy']), // fat missing
+  row('Oakes/RCC', 'Dinner', 'Steamed Edamame', 120, 11, 9, null, ['soy', 'vegan']), // fat missing
 
   // Porter/Kresge (no breakfast on purpose, to show the empty state)
-  row('Porter/Kresge', 'Lunch', 'Margherita Flatbread', 330, 13, 38, 14, ['gluten', 'milk']),
-  row('Porter/Kresge', 'Lunch', 'Minestrone Soup', 110, 4, 18, 2),
-  row('Porter/Kresge', 'Dinner', 'Cheese Pizza', 290, 12, 35, 11, ['gluten', 'milk']),
+  row('Porter/Kresge', 'Lunch', 'Margherita Flatbread', 330, 13, 38, 14, ['gluten', 'milk', 'vegetarian']),
+  row('Porter/Kresge', 'Lunch', 'Minestrone Soup', 110, 4, 18, 2, ['vegan']),
+  row('Porter/Kresge', 'Dinner', 'Cheese Pizza', 290, 12, 35, 11, ['gluten', 'milk', 'vegetarian']),
   row('Porter/Kresge', 'Dinner', 'Caesar Salad', 190, 6, 9, 15, ['milk', 'eggs', 'fish']),
 ];

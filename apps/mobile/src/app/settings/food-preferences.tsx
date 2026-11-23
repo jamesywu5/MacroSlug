@@ -166,8 +166,9 @@ export default function FoodPreferencesScreen() {
 
                 <ThemedView type="backgroundElement" style={styles.notice}>
                   <ThemedText type="small" themeColor="textSecondary">
-                    These choices are saved on this device. Food filtering and allergen
-                    verification are not available yet.
+                    These choices are saved on this device. Dietary restrictions filter the
+                    Menu tab. Food preferences are saved but don&apos;t change the menu yet.
+                    Allergen information comes from dining hall labels and is not verified.
                   </ThemedText>
                 </ThemedView>
 

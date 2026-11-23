@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,19 +17,49 @@ import { FoodColors } from '@/components/food/tokens';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { loadFoodPreferences } from '@/features/preferences/storage';
+import type { DietaryRestrictionId } from '@/features/preferences/types';
 import { useFoods } from '@/hooks/use-foods';
-import { countByMeal, defaultMealFor, filterFoods } from '@/lib/food/filter-foods';
+import { useTheme } from '@/hooks/use-theme';
+import { defaultMealFor } from '@/lib/food/filter-foods';
+import { buildMenuView, loadMenuRestrictions } from '@/lib/food/menu-view';
 import { DINING_HALLS, type DiningHallId, type MealType } from '@/lib/food/types';
 
 export default function MenuScreen() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const { foods, loading, error, refresh } = useFoods();
   const [diningHall, setDiningHall] = useState<DiningHallId | 'all'>('all');
   const [meal, setMeal] = useState<MealType>(() => defaultMealFor(new Date()));
+  const [restrictions, setRestrictions] = useState<DietaryRestrictionId[]>([]);
+  const [showAll, setShowAll] = useState(false);
 
-  const inHall = useMemo(() => filterFoods(foods, { diningHall, meal: 'all' }), [foods, diningHall]);
-  const visible = useMemo(() => filterFoods(inHall, { diningHall: 'all', meal }), [inHall, meal]);
-  const counts = useMemo(() => countByMeal(inHall), [inHall]);
+  // Reload saved restrictions whenever the tab gains focus, so changes made in
+  // Settings apply on return. "Show all" only lasts for the current visit.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      setShowAll(false);
+      void loadMenuRestrictions(loadFoodPreferences).then((saved) => {
+        if (active) setRestrictions(saved);
+      });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  const {
+    visible,
+    counts,
+    showBanner,
+    restrictionLabels,
+    hiddenCount,
+    emptyBecauseOfDiet: hiddenByDiet,
+  } = useMemo(
+    () => buildMenuView({ foods, restrictions, showAll, diningHall, meal }),
+    [foods, restrictions, showAll, diningHall, meal],
+  );
 
   const hallName =
     diningHall === 'all' ? 'any dining hall' : DINING_HALLS.find((h) => h.id === diningHall)?.label;
@@ -52,6 +83,27 @@ export default function MenuScreen() {
       <View style={styles.filters}>
         <DiningHallFilter value={diningHall} onChange={setDiningHall} />
         <MealFilter value={meal} onChange={setMeal} counts={loading ? undefined : counts} />
+        {showBanner && (
+          <View style={styles.bannerRow}>
+            <View
+              style={[styles.banner, { backgroundColor: theme.backgroundElement }]}
+              accessibilityRole="summary">
+              <ThemedText type="small" themeColor="textSecondary" style={styles.bannerText}>
+                {showAll
+                  ? `Showing all items · ${restrictionLabels.join(', ')} filter off`
+                  : `Filtered for: ${restrictionLabels.join(', ')} · ${hiddenCount} hidden`}
+              </ThemedText>
+              <Pressable
+                onPress={() => setShowAll((v) => !v)}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: showAll }}
+                accessibilityLabel="Show all items"
+                hitSlop={8}>
+                <ThemedText type="smallBold">{showAll ? 'Apply filters' : 'Show all'}</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        )}
       </View>
 
       {loading && foods.length === 0 ? (
@@ -85,8 +137,9 @@ export default function MenuScreen() {
             <View style={styles.empty}>
               <ThemedText type="smallBold">No {meal.toLowerCase()} items</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.centerText}>
-                Nothing is listed for {meal.toLowerCase()} at {hallName} today. Try another meal or
-                dining hall.
+                {hiddenByDiet
+                  ? `Nothing matches your dietary filters for ${meal.toLowerCase()} at ${hallName} today. Try another meal or dining hall, or tap Show all.`
+                  : `Nothing is listed for ${meal.toLowerCase()} at ${hallName} today. Try another meal or dining hall.`}
               </ThemedText>
             </View>
           }
@@ -117,6 +170,24 @@ const styles = StyleSheet.create({
   filters: {
     gap: Spacing.three,
     paddingBottom: Spacing.three,
+  },
+  bannerRow: {
+    paddingHorizontal: Spacing.four,
+    width: '100%',
+    maxWidth: MaxContentWidth,
+    alignSelf: 'center',
+  },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: 12,
+  },
+  bannerText: {
+    flex: 1,
   },
   list: {
     paddingHorizontal: Spacing.four,
