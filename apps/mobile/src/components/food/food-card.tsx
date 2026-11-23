@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -25,83 +25,116 @@ function formatGrams(value: number | null) {
 /**
  * One menu item: name, calories, protein / carbs / fat, allergens, and a
  * warning when any nutrition value is missing.
+ *
+ * Tapping the card calls `onPress` (open details). The "Add to Log" button is
+ * a separate control so screen readers can reach both.
  */
-export function FoodCard({ item, showHall = false }: { item: FoodItem; showHall?: boolean }) {
+export function FoodCard({
+  item,
+  showHall = false,
+  onPress,
+  onAddToLog,
+}: {
+  item: FoodItem;
+  showHall?: boolean;
+  onPress?: (item: FoodItem) => void;
+  onAddToLog?: (item: FoodItem) => void;
+}) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
   const hasMissing = item.missing.length > 0;
   const allMissing = item.missing.length === 4;
 
   return (
-    <View
-      style={[styles.card, { backgroundColor: theme.backgroundElement }]}
-      accessible
-      accessibilityLabel={describe(item)}>
-      <View style={styles.header}>
-        <View style={styles.titleBlock}>
-          <ThemedText type="smallBold" style={styles.name} numberOfLines={2}>
-            {item.name}
-          </ThemedText>
-          {showHall && (
-            <ThemedText type="small" themeColor="textSecondary">
-              {hallLabel(item)}
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
+      <Pressable
+        onPress={onPress ? () => onPress(item) : undefined}
+        disabled={!onPress}
+        accessible
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={describe(item)}
+        accessibilityHint={onPress ? 'Opens details' : undefined}
+        style={({ pressed }) => [styles.body, pressed && styles.pressed]}>
+        <View style={styles.header}>
+          <View style={styles.titleBlock}>
+            <ThemedText type="smallBold" style={styles.name} numberOfLines={2}>
+              {item.name}
             </ThemedText>
-          )}
-        </View>
-        <View style={styles.calories}>
-          <ThemedText type="smallBold" style={styles.caloriesValue}>
-            {item.calories ?? '—'}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            cal
-          </ThemedText>
-        </View>
-      </View>
-
-      <View style={styles.macroRow}>
-        {MACROS.map(({ key, label }) => {
-          const value = item[key];
-          return (
-            <View key={key} style={[styles.macro, { backgroundColor: theme.background }]}>
-              <ThemedText
-                type="smallBold"
-                themeColor={value === null ? 'textSecondary' : 'text'}>
-                {formatGrams(value)}
-              </ThemedText>
+            {showHall && (
               <ThemedText type="small" themeColor="textSecondary">
-                {label}
+                {hallLabel(item)}
               </ThemedText>
-            </View>
-          );
-        })}
-      </View>
-
-      {item.allergens.length > 0 && (
-        <View style={styles.allergens}>
-          {item.allergens.map((a) => (
-            <View key={a} style={[styles.allergen, { borderColor: theme.backgroundSelected }]}>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.allergenText}>
-                {a}
-              </ThemedText>
-            </View>
-          ))}
+            )}
+          </View>
+          <View style={styles.calories}>
+            <ThemedText type="smallBold" style={styles.caloriesValue}>
+              {item.calories ?? '—'}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              cal
+            </ThemedText>
+          </View>
         </View>
-      )}
 
-      {hasMissing && (
-        <View
-          style={[
-            styles.warning,
-            { backgroundColor: dark ? FoodColors.warningBackgroundDark : FoodColors.warningBackground },
-          ]}>
-          <ThemedText
-            type="small"
-            style={{ color: dark ? FoodColors.warningDark : FoodColors.warning }}>
-            {allMissing
-              ? '⚠︎ No nutrition info for this item'
-              : `⚠︎ Missing: ${item.missing.map(nutrientName).join(', ')}`}
+        <View style={styles.macroRow}>
+          {MACROS.map(({ key, label }) => {
+            const value = item[key];
+            return (
+              <View key={key} style={[styles.macro, { backgroundColor: theme.background }]}>
+                <ThemedText type="smallBold" themeColor={value === null ? 'textSecondary' : 'text'}>
+                  {formatGrams(value)}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {label}
+                </ThemedText>
+              </View>
+            );
+          })}
+        </View>
+
+        {item.allergens.length > 0 && (
+          <View style={styles.allergens}>
+            {item.allergens.map((a) => (
+              <View key={a} style={[styles.allergen, { borderColor: theme.backgroundSelected }]}>
+                <ThemedText type="small" themeColor="textSecondary" style={styles.allergenText}>
+                  {a}
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {hasMissing && (
+          <View
+            style={[
+              styles.warning,
+              {
+                backgroundColor: dark
+                  ? FoodColors.warningBackgroundDark
+                  : FoodColors.warningBackground,
+              },
+            ]}>
+            <ThemedText
+              type="small"
+              style={{ color: dark ? FoodColors.warningDark : FoodColors.warning }}>
+              {allMissing
+                ? '⚠︎ No nutrition info for this item'
+                : `⚠︎ Missing: ${item.missing.map(nutrientName).join(', ')}`}
+            </ThemedText>
+          </View>
+        )}
+      </Pressable>
+
+      {onAddToLog && (
+        <Pressable
+          onPress={() => onAddToLog(item)}
+          accessibilityRole="button"
+          accessibilityLabel={`Add ${item.name} to log`}
+          style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}>
+          <ThemedText type="smallBold" style={{ color: FoodColors.onAccent }}>
+            + Add to Log
           </ThemedText>
-        </View>
+        </Pressable>
       )}
     </View>
   );
@@ -128,6 +161,19 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: Spacing.three,
     gap: Spacing.three,
+  },
+  body: {
+    gap: Spacing.three,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  addButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    borderRadius: 999,
+    backgroundColor: FoodColors.accent,
   },
   header: {
     flexDirection: 'row',
