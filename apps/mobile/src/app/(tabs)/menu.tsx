@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,6 +19,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { loadFoodPreferences } from '@/features/preferences/storage';
 import type { DietaryRestrictionId } from '@/features/preferences/types';
+import { useAddToLog } from '@/hooks/use-add-to-log';
 import { useFoods } from '@/hooks/use-foods';
 import { useTheme } from '@/hooks/use-theme';
 import { defaultMealFor } from '@/lib/food/filter-foods';
@@ -29,6 +30,7 @@ export default function MenuScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { foods, loading, error, refresh } = useFoods();
+  const { openAddToLog, addToLogUI } = useAddToLog();
   const [diningHall, setDiningHall] = useState<DiningHallId | 'all'>('all');
   const [meal, setMeal] = useState<MealType>(() => defaultMealFor(new Date()));
   const [restrictions, setRestrictions] = useState<DietaryRestrictionId[]>([]);
@@ -70,7 +72,10 @@ export default function MenuScreen() {
         style={[
           styles.header,
           // On web the tab bar floats over the top of the page, so leave room for it.
-          { paddingTop: Platform.OS === 'web' ? Spacing.six + Spacing.five : insets.top + Spacing.three },
+          {
+            paddingTop:
+              Platform.OS === 'web' ? Spacing.six + Spacing.five : insets.top + Spacing.three,
+          },
         ]}>
         <ThemedText type="subtitle" style={styles.title}>
           Menu
@@ -126,7 +131,16 @@ export default function MenuScreen() {
         <FlatList
           data={visible}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <FoodCard item={item} showHall={diningHall === 'all'} />}
+          renderItem={({ item }) => (
+            <FoodCard
+              item={item}
+              showHall={diningHall === 'all'}
+              onPress={(food) =>
+                router.push({ pathname: '/food/[id]', params: { id: String(food.id) } })
+              }
+              onAddToLog={openAddToLog}
+            />
+          )}
           contentContainerStyle={[
             styles.list,
             { paddingBottom: insets.bottom + BottomTabInset + Spacing.four },
@@ -145,6 +159,8 @@ export default function MenuScreen() {
           }
         />
       )}
+
+      {addToLogUI}
     </ThemedView>
   );
 }
